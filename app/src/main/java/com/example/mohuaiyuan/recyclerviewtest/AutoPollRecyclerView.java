@@ -12,12 +12,14 @@ import android.view.MotionEvent;
 import java.lang.ref.WeakReference;
 
 public class AutoPollRecyclerView extends RecyclerView{
-    private static final long TIME_AUTO_POLL = 1600;
+    private static final long TIME_AUTO_POLL = 16;
     AutoPollTask autoPollTask;
     private boolean running; //标示是否正在自动轮询
     private boolean canRun;//标示是否可以自动轮询,可在不需要的是否置false
+
     private static int currentPosition;
     private static boolean turnToFirstPosition;
+    private static boolean isCheckStatus;
 
     public AutoPollRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -32,49 +34,39 @@ public class AutoPollRecyclerView extends RecyclerView{
         @Override
         public void run() {
             Log.d("yfing.wei", "run()----------------------------------- ");
-            AutoPollRecyclerView recyclerView = mReference.get();
-
-            boolean toEndPosition=false;
-            int allCount=0;
-            if (!turnToFirstPosition){
-                currentPosition=((GridLayoutManager)recyclerView.getLayoutManager()).findLastVisibleItemPosition();
-                Log.d("yfing.wei", "currentPosition: "+currentPosition);
-                currentPosition+=3;
-
-                allCount=recyclerView.getAdapter().getItemCount();
-                Log.d("yfing.wei", "allCount: "+allCount);
 
 
+            final AutoPollRecyclerView recyclerView = mReference.get();
+            recyclerView.scrollBy(2, 6);
+            recyclerView.postDelayed(recyclerView.autoPollTask,recyclerView.TIME_AUTO_POLL);
 
-                if (currentPosition>allCount){
-                    toEndPosition=true;
-                }
+        }
+    }
 
-            }
+    @Override
+    public void onScrolled(int dx, int dy) {
+        super.onScrolled(dx, dy);
 
-//            boolean toFirstPosition=false;
-//            toFirstPosition = currentPosition == allCount ;
-//            Log.d("yfing.wei", "toFirstPosition: "+toFirstPosition);
+        currentPosition=((GridLayoutManager)getLayoutManager()).findLastCompletelyVisibleItemPosition();
+        Log.d("yfing.wei", "currentPosition: "+currentPosition);
 
-            if (recyclerView != null && recyclerView.running &&recyclerView.canRun) {
-//                recyclerView.scrollBy(2, 6);
-                if (toEndPosition){
-                    recyclerView.smoothScrollToPosition(allCount-1);
-                    currentPosition=allCount;
-                    toEndPosition=false;
-                    turnToFirstPosition=true;
-                }else  if (turnToFirstPosition){
-                    Log.d("yfing.wei", "smoothScrollToPosition(0): ");
-                    recyclerView.scrollToPosition(0);
-                    turnToFirstPosition=false;
-                }else {
-                    Log.d("yfing.wei", "smoothScrollToPosition(currentPosition): "+currentPosition);
-                    recyclerView.smoothScrollToPosition(currentPosition);
-                }
-                recyclerView.postDelayed(recyclerView.autoPollTask,recyclerView.TIME_AUTO_POLL);
+        int allCount=getAdapter().getItemCount();
+        Log.d("yfing.wei", "currentPosition: "+currentPosition);
+
+        turnToFirstPosition= currentPosition==(allCount-1);
+
+        if (running &&canRun) {
+            if (turnToFirstPosition ){
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        scrollToPosition(0);
+                    }
+                }, 2000);
             }
         }
     }
+
     //开启:如果正在运行,先停止->再开启
     public void start() {
         if (running){

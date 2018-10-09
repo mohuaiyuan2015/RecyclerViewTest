@@ -32,7 +32,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String bean = mData.get(position % mData.size());
+        String bean = mData.get(position);
 
         holder.setName(bean);
         Glide.with(mContext)
@@ -47,7 +47,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public int getItemCount() {
         return mData.size();
-//        return Integer.MAX_VALUE;
     }
 
 
